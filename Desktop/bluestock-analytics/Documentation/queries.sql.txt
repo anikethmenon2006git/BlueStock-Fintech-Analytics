@@ -1,0 +1,56 @@
+-- 1. Top 5 Funds by 3-Year Return Metrics
+SELECT amfi_code, return_3y 
+FROM dim_fund 
+ORDER BY return_3y DESC 
+LIMIT 5;
+
+-- 2. Average NAV Per Month
+SELECT d.year, d.month, AVG(n.nav) as avg_nav
+FROM fact_nav n
+JOIN dim_date d ON n.date = d.date
+GROUP BY d.year, d.month
+ORDER BY d.year, d.month;
+
+-- 3. Total Transaction Value by State
+SELECT state, SUM(amount) as total_invested
+FROM fact_transactions
+GROUP BY state
+ORDER BY total_invested DESC;
+
+-- 4. Funds with an Expense Ratio Lower than 1%
+SELECT amfi_code, expense_ratio 
+FROM dim_fund 
+WHERE expense_ratio < 1.0;
+
+-- 5. Split of Transactions by Type (SIP vs Lumpsum vs Redemption)
+SELECT transaction_type, COUNT(*) as transaction_count, SUM(amount) as total_volume
+FROM fact_transactions
+GROUP BY transaction_type;
+
+-- 6. Total Capital Outflow (Redemptions) by State
+SELECT state, SUM(amount) as total_redemption
+FROM fact_transactions
+WHERE transaction_type = 'Redemption'
+GROUP BY state;
+
+-- 7. Identification of Active Non-KYC Compliant Transactions
+SELECT COUNT(*) as non_kyc_count, SUM(amount) as risk_volume
+FROM fact_transactions
+WHERE kyc_status != 'Verified';
+
+-- 8. Highest Recorded NAV for Each Unique Fund
+SELECT amfi_code, MAX(nav) as peak_nav
+FROM fact_nav
+GROUP BY amfi_code;
+
+-- 9. Monthly Growth Trend of SIP Inflows
+SELECT d.year, d.month, SUM(t.amount) as total_sip
+FROM fact_transactions t
+JOIN dim_date d ON t.transaction_date = d.date
+WHERE t.transaction_type = 'SIP'
+GROUP BY d.year, d.month;
+
+-- 10. List Funds Experiencing High Risk Returns (Returns > 15% and Expense Ratio > 2%)
+SELECT amfi_code, return_5y, expense_ratio
+FROM dim_fund
+WHERE return_5y > 15.0 AND expense_ratio > 2.0;

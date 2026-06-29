@@ -1,0 +1,40 @@
+-- Schema definition for Bluestock Mutual Fund Star Schema
+
+CREATE TABLE IF NOT EXISTS dim_fund (
+    amfi_code INTEGER PRIMARY KEY,
+    expense_ratio REAL,
+    return_1y REAL,
+    return_3y REAL,
+    return_5y REAL
+);
+
+CREATE TABLE IF NOT EXISTS dim_date (
+    date TEXT PRIMARY KEY,
+    day INTEGER,
+    month INTEGER,
+    year INTEGER,
+    day_of_week TEXT
+);
+
+CREATE TABLE IF NOT EXISTS fact_nav (
+    nav_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    amfi_code INTEGER,
+    date TEXT,
+    nav REAL,
+    FOREIGN KEY (amfi_code) REFERENCES dim_fund(amfi_code),
+    FOREIGN KEY (date) REFERENCES dim_date(date)
+);
+
+CREATE TABLE IF NOT EXISTS fact_transactions (
+    transaction_id INTEGER PRIMARY KEY,
+    investor_id INTEGER,
+    amfi_code INTEGER,
+    transaction_date TEXT,
+    transaction_type TEXT,
+    amount REAL,
+    units REAL,
+    state TEXT,
+    kyc_status TEXT,
+    FOREIGN KEY (amfi_code) REFERENCES dim_fund(amfi_code),
+    FOREIGN KEY (transaction_date) REFERENCES dim_date(date)
+);
